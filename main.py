@@ -1,35 +1,59 @@
+from tkinter import *
+from tkinter import messagebox
 from pandas import read_csv
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 
-filename = "Energy Meter.csv"
-names = ["Voltage","Current","Power","Class"]
-dataset = read_csv(filename,names=names)
+# Load dataset
+filename = "Energy_Meter.csv"
+names = ["Voltage", "Current", "Power", "Class"]
+dataset = read_csv(filename, names=names)
 
+# Prepare data
 array = dataset.values
-x = array[:,0:3]
-y = array[:,3]
+x = array[:, 0:3]
+y = array[:, 3]
 X_train, X_validation, y_train, y_validation = train_test_split(x, y, test_size=0.20, random_state=1)
 
-# model = SVC(gamma='auto') Support Vector Machine ML classifier shows only 98% Accuracy but LR has more
-model = LogisticRegression(solver='liblinear',multi_class='ovr')
+# Train logistic regression model
+model = LogisticRegression(solver='liblinear', multi_class='ovr')
 model.fit(X_train, y_train)
 
-results = model.score(X_validation,y_validation) #Has a 100 percent model accuracy! with the LR Model
-print(f"{results*100} % accuracy")
+# Create Tkinter window
+root = Tk()
+root.title("Energy Meter Prediction")
+root.geometry("1280x720")
 
-while True:
-    x1 = float(input("Input your voltage from the volt meter (input in decimals for accuracy or real numbers your choice) "))
-    x2 = float(input("Enter your current from the amp meter (input in decimals for accuracy or real numbers your choice)"))
-    x3 = float(input("Enter your power consuption of your house currently (input in decimals for accuracy or real numbers your choice)"))
+def predict_status():
+    # Get input values
+    voltage = float(entry_voltage.get())
+    current = float(entry_current.get())
+    power = float(entry_power.get())
 
-    predictions = [[x1,x2,x3]]
-    predictions = model.predict(predictions)
-    print(predictions)
+    # Predict
+    prediction = model.predict([[voltage, current, power]])
 
-    check = input("Do you want to continue your test (type yes or no)")
-    if check=="yes".lower():
-        continue
-    if check=="no".lower():
-        break
+    # Display prediction
+    messagebox.showinfo("Prediction", f"The status is: {prediction[0]}")
+
+# Create input fields
+label_voltage = Label(root, text="Voltage:")
+label_voltage.grid(row=0, column=0, pady=10)
+entry_voltage = Entry(root, width=20)
+entry_voltage.grid(row=0, column=1, pady=10)
+
+label_current = Label(root, text="Current:")
+label_current.grid(row=1, column=0, pady=10)
+entry_current = Entry(root, width=20)
+entry_current.grid(row=1, column=1, pady=10)
+
+label_power = Label(root, text="Power:")
+label_power.grid(row=2, column=0, pady=10)
+entry_power = Entry(root, width=20)
+entry_power.grid(row=2, column=1, pady=10)
+
+# Create predict button
+predict_button = Button(root, text="Predict", command=predict_status, width=20)
+predict_button.grid(row=3, column=0, columnspan=2, pady=20)
+
+root.mainloop()
